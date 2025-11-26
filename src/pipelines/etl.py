@@ -1,6 +1,7 @@
 from src.config.database_connection import mssql_engine
 from src.config.warehouse_connection import postgre_engine
 from sqlalchemy.engine import Engine
+from sqlalchemy.sql import text
 from sqlalchemy.schema import CreateSchema
 import pandas as pd
 
@@ -105,4 +106,18 @@ class ETLPipeline:
         dimProductPriceCostHistory_df.to_sql('DimProductPriceCostHistory', postgre_engine, schema=self.warehouse_schema_name, if_exists='replace', index=False)
         factProductSales_df.to_sql('FactProductSales', postgre_engine, schema=self.warehouse_schema_name, if_exists='replace', index=False)
 
-        self.logger.info("ETL Pipeline finished ! ")
+        from datetime import datetime
+        update_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        # Add log into PipelineLog table
+        with self.wh_engine.connect() as conn:
+            conn.execute(text(f"""
+                CREATE TABLE IF NOT EXISTS {self.warehouse_schema_name}."PipelineLog" (
+                    Id SERIAL PRIMARY KEY,
+                    PipelineName VARCHAR(255),
+                    LastUpdate TIMESTAMP
+                );
+                INSERT INTO {self.warehouse_schema_name}."PipelineLog" (PipelineName, LastUpdate)
+                VALUES ('ETLPipeline', '{update_date}');
+            """))
+
+        self.logger.info(f"ETL Pipeline finished in {update_date} ! ")
