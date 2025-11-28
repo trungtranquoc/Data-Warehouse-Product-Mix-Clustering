@@ -1,0 +1,42 @@
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sqlserver
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "YourStrong!Passw0rd"
+    ports:
+      - "1433:1433"
+    volumes:
+      - ./data:/var/opt/mssql/backups
+  
+  postgres:
+    image: postgres:16
+    container_name: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Trungtq
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgresdata:/var/lib/postgresql/data
+  
+  streamlit:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: streamlit-app
+    ports:
+      - "8501:8501"
+    depends_on:
+      - sqlserver
+      - postgres
+    environment:
+      - TZ=UTC
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped
+
+volumes:
+  postgresdata:
