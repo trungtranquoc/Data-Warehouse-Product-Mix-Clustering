@@ -9,6 +9,7 @@ class Encoder(nn.Module):
             input_size=input_size, 
             hidden_size=hidden_size, 
             num_layers=num_layers, 
+            dropout=0.2,
             batch_first=True
         )
 
@@ -44,6 +45,7 @@ class Decoder(nn.Module):
             input_size=input_size, 
             hidden_size=hidden_size, 
             num_layers=num_layers, 
+            dropout=0.2,
             batch_first=True
         )
         self.linear = nn.Linear(hidden_size, output_size)
